@@ -114,6 +114,29 @@ RUN ./configure \
 && make -j${CPUCOUNT} \
 && make install
 
+## python deps build
+
+RUN apt-get install -qy --no-install-recommends \
+  libffi-dev \
+  python3-cryptography \
+  python3-dev \
+  python3-pip \
+  python3-setuptools \
+  python3-setuptools-rust/bullseye-backports \
+&& apt-get clean
+
+RUN pip3 install --upgrade pip
+RUN pip3 install --no-cache-dir \
+  bcrypt==3.2.2 \
+  cffi==1.15.1 \
+  fabric==3.0.0 \
+  invoke==2.0.0 \
+  paramiko==3.0.0 \
+  Pebble==5.0.3 \
+  psutil==5.9.4 \
+  pycparser==2.21 \
+  PyNaCl==1.5.0
+
 # --- install
 FROM debian:bullseye AS app
 
@@ -189,33 +212,12 @@ RUN /usr/local/nginx/sbin/nginx -t
 
 # python deps for Mr. OTCS
 RUN apt-get install -qy --no-install-recommends \
-  libffi-dev \
   python3 \
   python3-cryptography \
-  python3-dev \
-  python3-pip \
-  python3-setuptools \
-  python3-setuptools-rust/bullseye-backports \
 && apt-get clean
 
-RUN pip3 install --upgrade pip
-RUN pip3 install --no-cache-dir \
-  bcrypt==3.2.2 \
-  cffi==1.15.1 \
-  fabric==3.0.0 \
-  invoke==2.0.0 \
-  paramiko==3.0.0 \
-  Pebble==5.0.3 \
-  psutil==5.9.4 \
-  pycparser==2.21 \
-  PyNaCl==1.5.0
-#RUN pip3 install --no-cache-dir --requirement /app/requirements.txt
-
 COPY docker/otcs-start.sh /
-
 # copy OTCS app
 COPY mr-otcs /app
-
-EXPOSE 1935
 
 ENTRYPOINT ["/otcs-start.sh"]
