@@ -106,6 +106,7 @@ RUN ./configure \
 
 RUN apt-get install -qy --no-install-recommends \
   libffi-dev \
+  libmediainfo-dev \
   python3-cryptography \
   python3-dev \
   python3-pip \
@@ -115,15 +116,21 @@ RUN apt-get install -qy --no-install-recommends \
 
 RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir \
-  bcrypt==3.2.2 \
+  bcrypt==4.0.1 \
+  certifi==2022.12.7 \
   cffi==1.15.1 \
+  charset-normalizer==3.0.1 \
   fabric==3.0.0 \
+  idna==3.4 \
   invoke==2.0.0 \
   paramiko==3.0.0 \
   Pebble==5.0.3 \
   psutil==5.9.4 \
   pycparser==2.21 \
-  PyNaCl==1.5.0
+  pymediainfo==6.0.1 \
+  PyNaCl==1.5.0 \
+  requests==2.28.2 \
+  urllib3==1.26.14
 
 # --- install
 FROM debian:bullseye AS app
@@ -202,6 +209,7 @@ RUN /usr/local/nginx/sbin/nginx -t
 
 # python deps for Mr. OTCS
 RUN apt-get install -qy --no-install-recommends \
+  libmediainfo0v5 \
   python3 \
   python3-cryptography \
 && apt-get clean
