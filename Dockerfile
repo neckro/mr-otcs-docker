@@ -114,23 +114,12 @@ RUN apt-get install -qy --no-install-recommends \
   python3-setuptools-rust/bullseye-backports \
 && apt-get clean
 
-RUN pip3 install --upgrade pip
-RUN pip3 install --no-cache-dir \
-  bcrypt==4.0.1 \
-  certifi==2022.12.7 \
-  cffi==1.15.1 \
-  charset-normalizer==3.0.1 \
-  fabric==3.0.0 \
-  idna==3.4 \
-  invoke==2.0.0 \
-  paramiko==3.0.0 \
-  Pebble==5.0.3 \
-  psutil==5.9.4 \
-  pycparser==2.21 \
-  pymediainfo==6.0.1 \
-  PyNaCl==1.5.0 \
-  requests==2.28.2 \
-  urllib3==1.26.14
+WORKDIR /usr/local
+COPY mr-otcs/requirements.txt .
+RUN grep -Eiv "cryptography" requirements.txt > requirements-filtered.txt && \
+  pip3 install --upgrade pip && \
+  pip3 install --no-cache-dir -r ./requirements-filtered.txt
+
 
 # --- install
 FROM debian:bullseye AS app
@@ -186,12 +175,12 @@ RUN apt-get install -qy --no-install-recommends --allow-unauthenticated \
 && apt-get clean
 
 # copy the builds from builder
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /usr/local/lib /usr/local/lib
-COPY --from=builder /usr/local/share /usr/local/share
-COPY --from=builder /usr/local/nginx /usr/local/nginx
 COPY --from=builder /opt/vc/lib /opt/vc/lib
 RUN echo "/opt/vc/lib" > /etc/ld.so.conf.d/00-vmcs.conf && ldconfig
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/local/nginx /usr/local/nginx
+COPY --from=builder /usr/local/share /usr/local/share
 
 # test ffmpeg (fail the build if libs don't all load)
 RUN /usr/local/bin/ffmpeg -version
