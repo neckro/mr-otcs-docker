@@ -19,20 +19,8 @@ RUN ./raspi-build.sh
 ## ffmpeg build
 
 # add deb-multimedia repo
-RUN \
-  echo "deb http://deb.debian.org/debian bullseye-backports main"   >> /etc/apt/sources.list.d/deb-packports.list &&\
-  echo "deb     http://www.deb-multimedia.org bullseye main non-free" >> /etc/apt/sources.list.d/zz-deb-multimedia.list &&\
-  echo "deb-src http://www.deb-multimedia.org bullseye main non-free" >> /etc/apt/sources.list.d/zz-deb-multimedia.list
-
-# keep deb-multimedia's unsigned packages from taking priority over debian ones
-RUN \
-  echo "Package: *"                         >> /etc/apt/preferences.d/zz-deb-multimedia &&\
-  echo "Pin: origin www.deb-multimedia.org" >> /etc/apt/preferences.d/zz-deb-multimedia &&\
-  echo "Pin-Priority: 100"                  >> /etc/apt/preferences.d/zz-deb-multimedia
-
-RUN \
-  apt-get update -oAcquire::AllowInsecureRepositories=true &&\
-  apt-get install -qy --no-install-recommends --allow-unauthenticated deb-multimedia-keyring
+COPY docker/add-deb-multimedia.sh .
+RUN ./add-deb-multimedia.sh
 
 # ffmpeg build deps available through Debian
 RUN apt-get install -qy --no-install-recommends \
@@ -151,8 +139,10 @@ RUN \
     build-essential \
 && apt-get clean
 
-COPY --from=builder /etc/apt /etc/apt
-COPY --from=builder /var/lib/apt /var/lib/apt
+# add deb-multimedia repo
+WORKDIR /usr/local
+COPY docker/add-deb-multimedia.sh .
+RUN ./add-deb-multimedia.sh
 
 # ffmpeg deps
 RUN apt-get install -qy --no-install-recommends \
